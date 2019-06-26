@@ -1,9 +1,26 @@
 const https = require('https');
 const http = require('http');
+const { Pool, Client } = require('pg')
 const TYPE_HTTP = 'http';
 let tests = [];
 let results = {}
 
+exports.RegisterPostgresDependency = function(user, database, password, host, port, timeout) {
+  var config = {
+      user, 
+      database,
+      password,
+      host,
+      port, 
+      max: 10, // max number of clients in the pool
+      idleTimeoutMillis: timeout,
+  };
+  const pool = new Pool(config);
+  pool.query('SELECT NOW()', (err, res) => {
+    console.log(err, res)
+    pool.end()
+  })
+}
 
 exports.RegisterHTTPDependency = function(url, name, severity) {
   const start = Date.now()
