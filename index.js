@@ -1,39 +1,59 @@
 const https = require('https');
 const http = require('http');
-let promises = [];
+const TYPE_HTTP = 'http';
+let tests = [];
+let results = {}
 
-exports.RegisterHTTPDependency = async function(url, name, severity) {
-  let promise = [];
-  let pr = await GeneratePromise(url);
-  promise.push(pr, name, severity, HTTPCheck)
-  promises.push(promise)
-  console.log('promises1: ', promises)
+
+exports.RegisterHTTPDependency = function(url, name, severity) {
+  const start = Date.now()
+  GeneratePromise(url).then(function(value) {
+    let status = HTTPCheck(value);
+    let duration = getDuration(start);
+    tests.push(createResult({status, severity, name, TYPE_HTTP, duration }));
+  }).catch(function(error) {
+    let status = HTTPCheck(500);
+    let duration = getDuration(start);
+    tests.push(createResult({status, severity, name, TYPE_HTTP, duration }));
+  });
 }
 
+const getDuration = function(start) {
+  return Date.now() - start
+}
 
-const createResult = ({ status, severity}) => ({
+const createResult = ({ status, severity, name, TYPE_HTTP, duration}) => ({
   status,
   severity,
+  name,
+  type: TYPE_HTTP,
+  duration,
 });
 
 exports.Check = function() {
-  console.log('promises2: ', promises)
-  let results = {};
-  for (let i = 0; i < promises.length; i++) {
-    const check = promises[i];
-    const promise = check[0];
-    const name = check[1];
-    const severity = check[2];
-    console.log('promise: ', promise)
-    // promise.then(function(value) {
-    //   let status = HTTPCheck(value)
-    //   results[name] = createResult({status, severity})
-    //   console.log('results: ', results)
-    // });
+  let result = {};
+  result.tests = {};
+  let pass = true;
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    if (test.status != 'ok') {
+      pass = false;
+    }
+    result.tests[test.name] = {
+      "status": test.status,
+      "type": test.type,
+      "severity": test.severity,
+      "duration": test.duration,
+    }
   }
+  result.status = pass ? 'ok' : 'fail';
+  result.timestamp = Date.now();
+  console.log('result: ', result)
+  return result
 }
 
 let HTTPCheck = function(code){
+  console.log('code: ', code)
   if (code > 399) {
     return 'fail'
   } else {
