@@ -2,41 +2,38 @@ const https = require('https');
 const http = require('http');
 let promises = [];
 
-exports.RegisterHTTPDependency = function(url, name, severity) {
+exports.RegisterHTTPDependency = async function(url, name, severity) {
   let promise = [];
-  const pr = GeneratePromise(url);
+  let pr = await GeneratePromise(url);
   promise.push(pr, name, severity, HTTPCheck)
   promises.push(promise)
+  console.log('promises1: ', promises)
 }
+
 
 const createResult = ({ status, severity}) => ({
   status,
   severity,
-  // setUserName (userName) {
-  //   this.userName = userName;
-  //   return this;
-  // }
 });
 
 exports.Check = function() {
+  console.log('promises2: ', promises)
   let results = {};
   for (let i = 0; i < promises.length; i++) {
     const check = promises[i];
     const promise = check[0];
     const name = check[1];
     const severity = check[2];
-    promise.then(function(value) {
-      let status = HTTPCheck(value)
-      let x = createResult({status, severity})
-      results[name] = createResult({status, severity})
-      console.log("result: ", results)
-    });
+    console.log('promise: ', promise)
+    // promise.then(function(value) {
+    //   let status = HTTPCheck(value)
+    //   results[name] = createResult({status, severity})
+    //   console.log('results: ', results)
+    // });
   }
-  
 }
 
 let HTTPCheck = function(code){
-  console.log('code: ', code)
   if (code > 399) {
     return 'fail'
   } else {
@@ -47,6 +44,7 @@ let HTTPCheck = function(code){
 let GeneratePromise = function(url){
   if (url.includes("http://")) {
     return new Promise(function(resolve, reject) {
+      // resolve(20)
       http.get(url, (resp) => {
         let data = '';
         resp.on('data', (chunk) => {
@@ -61,6 +59,7 @@ let GeneratePromise = function(url){
     });
   } else if (url.includes("https://")) {
     return new Promise(function(resolve, reject) {
+      // resolve(30)
       https.get(url, (resp) => {
         let data = '';
         resp.on('data', (chunk) => {

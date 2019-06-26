@@ -15,8 +15,8 @@ describe('Basic Mocha String Test', function () {
   //   });
   // });
   it('register multiple', function () {
-    index.RegisterHTTPDependency("https://www.google.com/", "test-1-google","critical")
-    index.RegisterHTTPDependency("https://www.github.com/", "test-2-github","critical")
-    index.Check()
+    index.RegisterHTTPDependency("http://www.google.com/", "test-1-google","critical")
+    index.RegisterHTTPDependency("http://www.github.com/", "test-2-github","critical")
+    setTimeout(index.Check, 3000);
   });
 });
